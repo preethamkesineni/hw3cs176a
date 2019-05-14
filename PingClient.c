@@ -10,18 +10,22 @@
 #include <sys/time.h>
 #include <time.h>
 #include <stdio.h>
+#include <netdb.h>
 
 #define MAXLINE 1024 
 
 // Driver code 
 int main(int argc, char* argv[]) { 
 	int sockfd;
+
 	int port = atoi(argv[2]);
 	char buffer[MAXLINE]; 
 	char *message; 
 	struct sockaddr_in	 servaddr; 
 	struct timeval timeout={1,0};
-	
+	struct hostent *host_entry;
+
+		
 	// Creating socket file descriptor 
 	if ( (sockfd = socket(AF_INET, SOCK_DGRAM, 0)) < 0 ) { 
 		perror("socket creation failed"); 
@@ -30,11 +34,20 @@ int main(int argc, char* argv[]) {
 
 	memset(&servaddr, 0, sizeof(servaddr)); 
 	
+	
+
 	// Filling server information 
 	servaddr.sin_family = AF_INET; 
 	servaddr.sin_port = htons(port); 
-	servaddr.sin_addr.s_addr = INADDR_ANY; 
 	
+	if(argv[1][0] == 'c')
+	{
+		host_entry = (struct hostent*)gethostbyname(argv[1]);
+		memcpy(&servaddr.sin_addr, host_entry->h_addr_list[0], host_entry->h_length);
+	}
+	else{
+		servaddr.sin_addr.s_addr = inet_addr(argv[1]); 
+	}
 	setsockopt(sockfd,SOL_SOCKET,SO_RCVTIMEO,(char*)&timeout,sizeof(struct timeval));	
 	
 	int n, len; 
@@ -96,7 +109,7 @@ int main(int argc, char* argv[]) {
        	printf("%d%% packet loss rtt min/avg/max = ",percentLoss); 
 	printf("%f ",rttMin);
 	printf("%f ",rttAvg);
-	printf("%f ms",rttMax);
+	printf("%f ms\n",rttMax);
 	
 
 	close(sockfd); 
