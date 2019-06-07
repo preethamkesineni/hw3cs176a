@@ -61,7 +61,7 @@ int main(int argc, char* argv[]) {
 	
 	char *message = "";
 	char word[MAXLINE];
-	char guessWord[] = "        ";
+	char guessWord[] = "________";
 	int gameSuccess = 0;
 	int guesses = 0;
 	int wordLength = 0;	
@@ -91,9 +91,11 @@ int main(int argc, char* argv[]) {
 
         	printf("%s\n",guessWord);
 
-		guesses = word[2] - '0';
+		guesses = 0;
 		gameSuccess = word[0] - '0';
 		
+		char incorrectGuesses[] = "Incorrect Guesses:       ";
+		int k = 0;
 		while( (guesses < 6) || (gameSuccess == 0))
 		{
 			printf("Letter to guess:");
@@ -117,23 +119,50 @@ int main(int argc, char* argv[]) {
                                 MSG_WAITALL, ( struct sockaddr *) &servaddr,
                                 &len);
                 		word[n] = '\0';
+				//printf("%s\n",word);	
+				
+				if(word[0] == '[')
+				{
+					printf("YouWin!\n");
+					close(sockfd);
+					return 0;
+				}
 
+				
+				if(strlen(word) == 1)
+				{
+					incorrectGuesses[18 + k] = word[0];
+					k++;
+					guesses++;			
+				}
+				else{		
 				for(int i = 0; i < 8; i++)
                 		{
                 		        guessWord[i] = word[i + 3];
         		        }
+				}
 	
                 		printf("%s\n",guessWord);
 
-				guesses++;
+				printf("%s\n",incorrectGuesses);
+
+				
 			}
 		}
+		if(guesses == 6)
+		{
+			printf("YouLose!!\n");
+		}
+		
+
 		close(sockfd);
 	}
 	else
 	{
 		close(sockfd);
 	}
+
+	printf("GameOver!\n");
 
 	return 0; 
 } 

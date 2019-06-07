@@ -48,7 +48,6 @@ int main() {
 	char buffer[MAXLINE]; 
 	char* word = "        ";
 	struct sockaddr_in servaddr, cliaddr;
-
 		
 	
 	// Creating socket file descriptor 
@@ -66,13 +65,14 @@ int main() {
 	servaddr.sin_port = htons(PORT); 
 	
 	// Bind the socket with the server address 
+	
 	if ( bind(sockfd, (const struct sockaddr *)&servaddr, 
 			sizeof(servaddr)) < 0 ) 
 	{ 
 		perror("bind failed"); 
 		exit(EXIT_FAILURE); 
 	} 
-
+	
 	
 	int len, n; 
 
@@ -125,24 +125,46 @@ int main() {
 	sendto(sockfd, (const char *)message, sizeof(message),
                 MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
                         len);
-	char* incorrect = "   Incorrect\n";
+	//char* incorrect = "   Incorrect\n";
 	int correct = 0;
+	int fullWord = strlen(wordToGuess);
+	int succ = 0;
 	while(1)
 	{
+		correct = 0;
 		int len, n;
 		n = recvfrom(sockfd, (char *)buffer, MAXLINE,
                                 MSG_WAITALL, ( struct sockaddr *) &cliaddr,
                                 &len);
                         buffer[n] = '\0';
-                        printf("Client: Gussed %s\n", buffer);	
+                        printf("Client: Gussed %s\n", buffer);
+	//	if(buffer[0] == '8');
+	//	{
+	//		char* gameOver = "8GameOver!";
+	//		sendto(sockfd, (const char *)gameOver, sizeof(gameOver),
+          //              MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
+            //            len);
+		
+	//	}
+
 		for(int i = 0; i < strlen(wordToGuess); i++)
 		{
 			if(wordToGuess[i] == buffer[0])
 			{
 				message[i+3] = buffer[0];
-				correct = 1;	
+				correct = 1;
+				succ++;	
 			}
 		}
+		if(succ == fullWord)
+		{
+			char* win = "[";
+			sendto(sockfd, (const char *)win, sizeof(win),
+                        MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
+                        len);
+
+		}
+
 		if (correct){
 			sendto(sockfd, (const char *)message, sizeof(message),
                         MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
@@ -150,7 +172,7 @@ int main() {
 		}
 		else
 		{
-			sendto(sockfd, (const char *)incorrect, sizeof(incorrect),
+			sendto(sockfd, (const char *)buffer, MAXLINE,
                         MSG_CONFIRM, (const struct sockaddr *) &cliaddr,
                         len);
 		}
